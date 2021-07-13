@@ -11,13 +11,9 @@ function log(level: LogLevel, ...args: unknown[]): void {
         finishPromise: new Promise<void>((resolve) => window.addEventListener("beforeunload", () => resolve)),
     });
 
-    apiClient("log")({level, args}).catch(() => {
-        apiClient("log")({level, args: args.map((arg) => getPlainErrorProps(arg))}).catch((error) => {
-            // eslint-disable-next-line no-console
-            console.error(
-                "sending error to main process for logging failed (likely due to the serialization issue):",
-                Object(error).message, // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-            );
+    apiClient("log")({level, args}).catch(async () => {
+        return apiClient("log")({level, args: args.map((arg) => getPlainErrorProps(arg))}).catch(() => {
+            // NOOP
         });
     });
 }
